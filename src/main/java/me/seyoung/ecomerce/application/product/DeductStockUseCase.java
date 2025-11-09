@@ -1,11 +1,11 @@
 package me.seyoung.ecomerce.application.product;
 
 import me.seyoung.ecomerce.domain.product.Product;
-import me.seyoung.ecomerce.infrastructure.product.InMemoryProductRepository;
+import me.seyoung.ecomerce.domain.product.ProductRepository;
 
 public class DeductStockUseCase {
 
-    private InMemoryProductRepository productRepository;
+    private ProductRepository productRepository;
 
     public ProductInfo.StockDecrease execute(Long productId, int quantity) {
 
