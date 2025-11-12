@@ -5,6 +5,7 @@ import me.seyoung.ecomerce.application.order.CancelOrderUseCase;
 import me.seyoung.ecomerce.application.order.CompleteOrderUseCase;
 import me.seyoung.ecomerce.application.order.CreateOrderUseCase;
 import me.seyoung.ecomerce.domain.order.OrderItem;
+import me.seyoung.ecomerce.presentation.order.dto.*;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -62,24 +63,4 @@ public class OrderController {
         }
         return ResponseEntity.ok().build();
     }
-
-    public record CreateOrderRequest(
-            Long userId,
-            List<OrderItemRequest> items,
-            Long userCouponId,
-            Long pointToUse
-    ) {}
-
-    public record OrderItemRequest(
-            Long productId,
-            int quantity,
-            long pricePerItem
-    ) {}
-
-    public record CreateOrderResponse(Long orderId) {}
-
-    public record CancelOrderRequest(
-            Long usedCouponId,
-            Long usedPointAmount
-    ) {}
 }
