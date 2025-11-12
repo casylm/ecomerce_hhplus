@@ -5,12 +5,11 @@ import me.seyoung.ecomerce.application.payment.CanclePaymentUseCase;
 import me.seyoung.ecomerce.application.payment.CreatePaymentUseCase;
 import me.seyoung.ecomerce.domain.payment.Pay;
 import me.seyoung.ecomerce.domain.payment.PaymentInfo;
-import me.seyoung.ecomerce.domain.payment.PaymentStatus;
+import me.seyoung.ecomerce.presentation.payment.dto.CreatePaymentRequest;
+import me.seyoung.ecomerce.presentation.payment.dto.PaymentResponse;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-
-import java.time.LocalDateTime;
 
 /**
  * Payment API Controller
@@ -52,40 +51,5 @@ public class PaymentController {
         PaymentResponse response = PaymentResponse.from(result);
 
         return ResponseEntity.ok(response);
-    }
-
-    // Request/Response DTOs
-
-    /**
-     * 결제 생성 요청
-     */
-    public record CreatePaymentRequest(
-            Long orderId,
-            Long amount,
-            Long userId,
-            Long userCouponId  // nullable
-    ) {}
-
-    /**
-     * 결제 응답
-     */
-    public record PaymentResponse(
-            Long paymentId,
-            Long orderId,
-            Long amount,
-            PaymentStatus status,
-            LocalDateTime paidAt,
-            LocalDateTime cancelledAt
-    ) {
-        public static PaymentResponse from(PaymentInfo.Result result) {
-            return new PaymentResponse(
-                    result.paymentId(),
-                    result.orderId(),
-                    result.amount(),
-                    result.status(),
-                    result.paidAt(),
-                    result.cancelledAt()
-            );
-        }
     }
 }
