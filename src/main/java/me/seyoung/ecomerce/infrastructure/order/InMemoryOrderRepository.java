@@ -6,10 +6,7 @@ import me.seyoung.ecomerce.domain.order.OrderRepository;
 import org.springframework.stereotype.Component;
 
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicLong;
 
@@ -59,5 +56,25 @@ public class InMemoryOrderRepository implements OrderRepository {
         }
 
         return result;
+    }
+
+    @Override
+    public Map<Long, Long> getSalesCountByProduct(int days) {
+        List<OrderItem> orderItems = findOrderItemsWithinDays(days);
+        Map<Long, Long> salesByProduct = new HashMap<>();
+
+        for (OrderItem item : orderItems) {
+            Long productId = item.getProductId();
+            int quantity = item.getQuantity();
+
+            // 이미 존재하는 상품이면 기존 값에 더하기, 없으면 새로 추가
+            if (salesByProduct.containsKey(productId)) {
+                salesByProduct.put(productId, salesByProduct.get(productId) + quantity);
+            } else {
+                salesByProduct.put(productId, (long) quantity);
+            }
+        }
+
+        return salesByProduct;
     }
 }
