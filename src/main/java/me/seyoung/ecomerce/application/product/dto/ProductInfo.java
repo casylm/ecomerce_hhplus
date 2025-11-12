@@ -1,4 +1,4 @@
-package me.seyoung.ecomerce.application.product;
+package me.seyoung.ecomerce.application.product.dto;
 
 import lombok.AccessLevel;
 import lombok.Builder;
@@ -90,6 +90,25 @@ public class ProductInfo {
                     .productId(productId)
                     .increasedQuantity(increasedQuantity)
                     .totalStock(totalStock)
+                    .build();
+        }
+    }
+
+    /**
+     * 인기 상품 조회 결과
+     */
+    @Getter
+    @Builder
+    public static class TopProductResult {
+        private final Long productId;
+        private final String productName;
+        private final Long totalSold;
+
+        public static TopProductResult of(Long productId, String productName, Long totalSold) {
+            return TopProductResult.builder()
+                    .productId(productId)
+                    .productName(productName)
+                    .totalSold(totalSold)
                     .build();
         }
     }

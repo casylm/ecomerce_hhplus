@@ -2,6 +2,7 @@ package me.seyoung.ecomerce.presentation.point;
 
 import lombok.RequiredArgsConstructor;
 import me.seyoung.ecomerce.application.point.*;
+import me.seyoung.ecomerce.presentation.point.dto.*;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -15,23 +16,23 @@ public class PointController {
     private final GetPointUseCase getPointUseCase;
 
     @PostMapping("/charge")
-    public ResponseEntity<PointInfo.ChargePointResponse> chargePoint(@RequestBody ChargePointRequest request) {
-        PointInfo.ChargePointResponse response = chargePointUseCase.execute(request.userId(), request.amount());
+    public ResponseEntity<ChargePointResponse> chargePoint(@RequestBody ChargePointRequest request) {
+        PointInfo.ChargePointResponse pointInfo = chargePointUseCase.execute(request.userId(), request.amount());
+        ChargePointResponse response = ChargePointResponse.from(pointInfo);
         return ResponseEntity.ok(response);
     }
 
     @PostMapping("/use")
-    public ResponseEntity<PointInfo.UsePointResponse> usePoint(@RequestBody UsePointRequest request) {
-        PointInfo.UsePointResponse response = usePointUseCase.excute(request.userId(), request.amount());
+    public ResponseEntity<UsePointResponse> usePoint(@RequestBody UsePointRequest request) {
+        PointInfo.UsePointResponse pointInfo = usePointUseCase.excute(request.userId(), request.amount());
+        UsePointResponse response = UsePointResponse.from(pointInfo);
         return ResponseEntity.ok(response);
     }
 
     @GetMapping("/{userId}")
-    public ResponseEntity<PointInfo.GetPointResponse> getPoint(@PathVariable Long userId) {
-        PointInfo.GetPointResponse response = getPointUseCase.execute(userId, 0L);
+    public ResponseEntity<GetPointResponse> getPoint(@PathVariable Long userId) {
+        PointInfo.GetPointResponse pointInfo = getPointUseCase.execute(userId, 0L);
+        GetPointResponse response = GetPointResponse.from(pointInfo);
         return ResponseEntity.ok(response);
     }
-
-    public record ChargePointRequest(Long userId, long amount) {}
-    public record UsePointRequest(Long userId, long amount) {}
 }

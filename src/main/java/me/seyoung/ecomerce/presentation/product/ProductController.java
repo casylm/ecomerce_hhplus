@@ -42,4 +42,4 @@ public class ProductController {
         TopSellingProductsResponse response = TopSellingProductsResponse.from(topProducts);
         return ResponseEntity.ok(response);
     }
-}  
+}
