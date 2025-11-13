@@ -34,4 +34,12 @@ public interface CouponRepository {
      * @return 발급 가능 여부
      */
     boolean hasStock(Long couponId);
+
+    /**
+     * 비관적 락을 사용하여 쿠폰 조회
+     * 동시성 제어를 위해 사용
+     * @param couponId 쿠폰 ID
+     * @return 쿠폰 Optional
+     */
+    Optional<Coupon> findByIdWithLock(Long couponId);
 }
