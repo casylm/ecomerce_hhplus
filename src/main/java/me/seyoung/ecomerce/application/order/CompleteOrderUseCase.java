@@ -2,6 +2,7 @@ package me.seyoung.ecomerce.application.order;
 
 import lombok.RequiredArgsConstructor;
 import me.seyoung.ecomerce.domain.order.Order;
+import me.seyoung.ecomerce.domain.order.OrderRepository;
 import me.seyoung.ecomerce.infrastructure.order.InMemoryOrderRepository;
 import org.springframework.stereotype.Service;
 
@@ -9,7 +10,7 @@ import org.springframework.stereotype.Service;
 @RequiredArgsConstructor
 public class CompleteOrderUseCase {
 
-    private final InMemoryOrderRepository orderRepository;
+    private final OrderRepository orderRepository;
 
     public void execute(Long orderId) {
         // 1. 주문 조회
