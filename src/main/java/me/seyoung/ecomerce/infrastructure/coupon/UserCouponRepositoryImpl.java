@@ -3,61 +3,47 @@ package me.seyoung.ecomerce.infrastructure.coupon;
 import lombok.RequiredArgsConstructor;
 import me.seyoung.ecomerce.domain.coupon.UserCoupon;
 import me.seyoung.ecomerce.domain.coupon.UserCouponRepository;
-import me.seyoung.ecomerce.infrastructure.coupon.entity.UserCouponEntity;
 import org.springframework.context.annotation.Primary;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 @Repository
 @Primary
 @RequiredArgsConstructor
 public class UserCouponRepositoryImpl implements UserCouponRepository {
 
-    private final JpaUserCouponRepository jpaUserCouponRepository;
-    private final UserCouponMapper userCouponMapper;
+    private final UserCouponJpaRepository userCouponJpaRepository;
+    private final CouponJpaRepository couponJpaRepository;
 
     @Override
     public Optional<UserCoupon> findById(Long userCouponId) {
-        return jpaUserCouponRepository.findById(userCouponId)
-                .map(userCouponMapper::toDomain);
+        return userCouponJpaRepository.findById(userCouponId);
     }
 
     @Override
     public Optional<UserCoupon> findByUserIdAndCouponId(Long userId, Long couponId) {
-        return jpaUserCouponRepository.findByUserIdAndCouponId(userId, couponId)
-                .map(userCouponMapper::toDomain);
+        return userCouponJpaRepository.findByUserIdAndCouponId(userId, couponId);
     }
 
     @Override
     public List<UserCoupon> findByUserId(Long userId) {
-        return jpaUserCouponRepository.findByUserId(userId)
-                .stream()
-                .map(userCouponMapper::toDomain)
-                .collect(Collectors.toList());
+        return userCouponJpaRepository.findByUserId(userId);
     }
 
     @Override
     public List<UserCoupon> findAvailableByUserId(Long userId) {
-        return jpaUserCouponRepository.findByUserIdAndUsed(userId, false)
-                .stream()
-                .map(userCouponMapper::toDomain)
-                .collect(Collectors.toList());
+        return userCouponJpaRepository.findByUserIdAndUsed(userId, false);
     }
 
     @Override
     public UserCoupon save(UserCoupon userCoupon) {
-        UserCouponEntity entity = userCouponMapper.toEntity(userCoupon);
-        UserCouponEntity savedEntity = jpaUserCouponRepository.save(entity);
-        return userCouponMapper.toDomain(savedEntity);
+        return userCouponJpaRepository.save(userCoupon);
     }
 
     @Override
     public int getRemainingQuantity(Long couponId) {
-        return jpaUserCouponRepository.getRemainingQuantity(couponId);
+        return couponJpaRepository.getRemainingQuantity(couponId);
     }
-
-
 }
