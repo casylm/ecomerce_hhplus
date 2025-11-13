@@ -7,6 +7,9 @@ public interface ProductRepository {
     // 상품 조회
     Optional<Product> findById(Long productId);
 
+    // 여러 ID로 상품 조회
+    List<Product> findAllByIds(List<Long> productIds);
+
     // 상품 목록 조회
     List<Product> findAll();
 

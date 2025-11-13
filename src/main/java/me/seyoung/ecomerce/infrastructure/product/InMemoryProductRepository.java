@@ -10,7 +10,6 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicLong;
-import java.util.stream.Collectors;
 
 @Component
 public class InMemoryProductRepository implements ProductRepository {
@@ -24,6 +23,20 @@ public class InMemoryProductRepository implements ProductRepository {
     @Override
     public Optional<Product> findById(Long productId) {
         return Optional.ofNullable(store.get(productId));
+    }
+
+    @Override
+    public List<Product> findAllByIds(List<Long> productIds) {
+        List<Product> products = new ArrayList<>();
+
+        for (Long productId : productIds) {
+            Product product = store.get(productId);
+            if (product != null) {
+                products.add(product);
+            }
+        }
+
+        return products;
     }
 
     @Override

@@ -1,5 +1,6 @@
 package me.seyoung.ecomerce.application.product;
 
+import me.seyoung.ecomerce.application.product.dto.ProductInfo;
 import me.seyoung.ecomerce.domain.order.OrderRepository;
 import me.seyoung.ecomerce.domain.product.Product;
 import me.seyoung.ecomerce.domain.product.ProductRepository;

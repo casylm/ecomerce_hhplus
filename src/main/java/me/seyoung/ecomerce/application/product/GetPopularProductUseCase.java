@@ -1,6 +1,7 @@
 package me.seyoung.ecomerce.application.product;
 
 import lombok.RequiredArgsConstructor;
+import me.seyoung.ecomerce.application.product.dto.ProductInfo;
 import me.seyoung.ecomerce.domain.order.Order;
 import me.seyoung.ecomerce.domain.order.OrderItem;
 import me.seyoung.ecomerce.domain.order.OrderRepository;

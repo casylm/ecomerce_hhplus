@@ -4,6 +4,7 @@ import lombok.RequiredArgsConstructor;
 import me.seyoung.ecomerce.domain.point.Point;
 import me.seyoung.ecomerce.domain.point.PointHistory;
 import me.seyoung.ecomerce.domain.point.PointStatus;
+import me.seyoung.ecomerce.domain.user.User;
 import me.seyoung.ecomerce.infrastructure.point.InMemoryPointRepository;
 import me.seyoung.ecomerce.infrastructure.user.InMemoryUserRepository;
 import org.springframework.stereotype.Service;
@@ -17,13 +18,16 @@ public class UsePointUseCase {
     // 포인트 사용
     public PointInfo.UsePointResponse excute(Long userId, Long amount) {
         // 사용자 검증
-        userRepository.findByUserId(userId)
+        User user = userRepository.findByUserId(userId)
                 .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 사용자입니다."));
 
-        Point usedPoint = pointRepository.use(userId, amount);
+        Point point = pointRepository.findByUserId(user.getId())
+                .orElseThrow(() -> new IllegalArgumentException("유저 포인트를 찾을 수 없습니다."));
+
+        point.use(amount);
 
         PointHistory history = new PointHistory(userId, PointStatus.USE, amount);
 
-        return PointInfo.UsePointResponse.of(userId, usedPoint.getBalance());
+        return PointInfo.UsePointResponse.of(userId, point.getBalance());
     }
 }
