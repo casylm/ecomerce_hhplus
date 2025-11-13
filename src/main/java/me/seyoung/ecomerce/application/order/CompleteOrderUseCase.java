@@ -3,7 +3,6 @@ package me.seyoung.ecomerce.application.order;
 import lombok.RequiredArgsConstructor;
 import me.seyoung.ecomerce.domain.order.Order;
 import me.seyoung.ecomerce.domain.order.OrderRepository;
-import me.seyoung.ecomerce.infrastructure.order.InMemoryOrderRepository;
 import org.springframework.stereotype.Service;
 
 @Service

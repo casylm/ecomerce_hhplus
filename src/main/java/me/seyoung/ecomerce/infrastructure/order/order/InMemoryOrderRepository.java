@@ -1,4 +1,4 @@
-package me.seyoung.ecomerce.infrastructure.order;
+package me.seyoung.ecomerce.infrastructure.order.order;
 
 import me.seyoung.ecomerce.domain.order.Order;
 import me.seyoung.ecomerce.domain.order.OrderItem;

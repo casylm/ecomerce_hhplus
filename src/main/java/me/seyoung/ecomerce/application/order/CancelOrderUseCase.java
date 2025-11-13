@@ -1,15 +1,11 @@
 package me.seyoung.ecomerce.application.order;
 
 import lombok.RequiredArgsConstructor;
-import me.seyoung.ecomerce.domain.coupon.UserCoupon;
 import me.seyoung.ecomerce.domain.coupon.UserCouponRepository;
 import me.seyoung.ecomerce.domain.order.Order;
-import me.seyoung.ecomerce.domain.order.OrderItem;
 import me.seyoung.ecomerce.domain.order.OrderRepository;
-import me.seyoung.ecomerce.domain.point.Point;
 import me.seyoung.ecomerce.domain.point.PointRepository;
 import me.seyoung.ecomerce.domain.product.ProductRepository;
-import me.seyoung.ecomerce.infrastructure.order.InMemoryOrderRepository;
 import org.springframework.stereotype.Service;
 
 @Service
