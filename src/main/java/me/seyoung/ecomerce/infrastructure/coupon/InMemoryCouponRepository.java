@@ -50,4 +50,11 @@ public class InMemoryCouponRepository implements CouponRepository {
                 .map(Coupon::hasStock)
                 .orElse(false);
     }
+
+    @Override
+    public Optional<Coupon> findByIdWithLock(Long couponId) {
+        // InMemory 환경에서는 락을 지원하지 않으므로 일반 findById 반환
+        // 실제 락 기능은 JPA 구현체에서만 동작
+        return findById(couponId);
+    }
 }

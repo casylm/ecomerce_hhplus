@@ -21,7 +21,7 @@ public class InMemoryOrderRepository implements OrderRepository {
         // 신규 저장인 경우 id 자동 생성
         if (id == null) {
             id = sequence.getAndIncrement();
-            order.assignId(id);   // ✅ Order 도메인 엔티티에서 ID 할당
+            order.assignId(id);
         }
 
         storage.put(id, order);
