@@ -24,7 +24,7 @@ public class PointController {
 
     @PostMapping("/use")
     public ResponseEntity<UsePointResponse> usePoint(@RequestBody UsePointRequest request) {
-        PointInfo.UsePointResponse pointInfo = usePointUseCase.excute(request.userId(), request.amount());
+        PointInfo.UsePointResponse pointInfo = usePointUseCase.execute(request.userId(), request.amount());
         UsePointResponse response = UsePointResponse.from(pointInfo);
         return ResponseEntity.ok(response);
     }
