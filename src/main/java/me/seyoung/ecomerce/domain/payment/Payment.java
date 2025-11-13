@@ -13,18 +13,22 @@ public class Payment {
     private PaymentStatus status;   // PENDING, SUCCESS, FAILED, CANCELLED
     private LocalDateTime paidAt;
     private LocalDateTime cancelledAt;
+    private final Long usedCouponId;      // 사용한 쿠폰 ID (없으면 null)
+    private final Long usedPointAmount;   // 사용한 포인트 금액 (없으면 0)
 
-    private Payment(Long orderId, Price amount) {
+    private Payment(Long orderId, Price amount, Long usedCouponId, Long usedPointAmount) {
         this.orderId = orderId;
         this.amount = amount;
+        this.usedCouponId = usedCouponId;
+        this.usedPointAmount = usedPointAmount;
         this.status = PaymentStatus.PENDING;
     }
 
-    public static Payment create(Long orderId, Price amount) {
-        return new Payment(orderId, amount);
+    public static Payment create(Long orderId, Price amount, Long usedCouponId, Long usedPointAmount) {
+        return new Payment(orderId, amount, usedCouponId, usedPointAmount);
     }
 
-    // ★ InMemoryRepository에서 ID 할당
+    // ID 할당
     public void assignId(Long id) {
         this.id = id;
     }
