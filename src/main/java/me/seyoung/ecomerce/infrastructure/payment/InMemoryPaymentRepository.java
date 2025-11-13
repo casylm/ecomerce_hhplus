@@ -31,4 +31,9 @@ public class InMemoryPaymentRepository implements PaymentRepository {
     public Optional<Payment> findById(Long paymentId) {
         return Optional.ofNullable(storage.get(paymentId));
     }
+
+    @Override
+    public Optional<Payment> findByOrderId(Long orderId) {
+        return Optional.empty();
+    }
 }
