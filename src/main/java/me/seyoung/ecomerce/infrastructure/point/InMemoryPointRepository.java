@@ -20,36 +20,6 @@ public class InMemoryPointRepository implements PointRepository {
     }
 
     @Override
-    public Point charge(Long userId, long amount) {
-        // 기존 포인트가 없으면 새로 생성
-        Point point = store.getOrDefault(userId, new Point(userId, 0L));
-        point.charge(amount);
-        store.put(userId, point);
-
-        return point;
-    }
-
-    @Override
-    public Point use(Long userId, long amount) {
-        Point point = store.get(userId);
-
-        if (point == null) {
-            throw new IllegalStateException("해당 사용자의 포인트가 존재하지 않습니다.");
-        }
-
-        point.use(amount);
-        store.put(userId, point);
-
-        return point;
-    }
-
-    @Override
-    public long getBalance(Long userId) {
-        Point point = store.get(userId);
-        return point != null ? point.getBalance() : 0L;
-    }
-
-    @Override
     public Point save(Point point) {
         store.put(point.getUserId(), point);
         return point;
