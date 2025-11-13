@@ -3,6 +3,7 @@ package me.seyoung.ecomerce.infrastructure.user;
 import me.seyoung.ecomerce.domain.user.User;
 import me.seyoung.ecomerce.domain.user.UserRepository;
 import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Repository;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -11,6 +12,7 @@ import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 
 @Component
+@Repository
 public class InMemoryUserRepository implements UserRepository {
 
     // 사용자를 저장할 메모리 Map

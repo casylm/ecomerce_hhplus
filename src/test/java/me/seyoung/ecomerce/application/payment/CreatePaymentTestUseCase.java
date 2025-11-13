@@ -1,7 +1,12 @@
 package me.seyoung.ecomerce.application.payment;
 
+import me.seyoung.ecomerce.application.coupon.ApplyCouponUseCase;
+import me.seyoung.ecomerce.domain.order.Order;
+import me.seyoung.ecomerce.domain.order.OrderItem;
+import me.seyoung.ecomerce.domain.order.OrderRepository;
 import me.seyoung.ecomerce.domain.payment.*;
-import me.seyoung.ecomerce.infrastructure.payment.InMemoryPaymentRepository;
+import me.seyoung.ecomerce.domain.point.PointRepository;
+import me.seyoung.ecomerce.domain.product.ProductRepository;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -10,6 +15,8 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.*;
@@ -21,7 +28,19 @@ import static org.mockito.BDDMockito.*;
 class CreatePaymentTestUseCase {
 
     @Mock
-    private InMemoryPaymentRepository paymentRepository;
+    private PaymentRepository paymentRepository;
+
+    @Mock
+    private OrderRepository orderRepository;
+
+    @Mock
+    private ProductRepository productRepository;
+
+    @Mock
+    private ApplyCouponUseCase applyCouponUseCase;
+
+    @Mock
+    private PointRepository pointRepository;
 
     @InjectMocks
     private CreatePaymentUseCase createPaymentUseCase;
@@ -31,13 +50,20 @@ class CreatePaymentTestUseCase {
     void 결제를_성공적으로_생성한다() {
         // given
         Long orderId = 1L;
-        Long amount = 50000L;
         Long userId = 100L;
-        Pay command = new Pay(orderId, amount, userId, null);
+        Pay command = new Pay(orderId, 20000L, userId, null, null);
 
-        given(paymentRepository.findByOrderId(orderId)).willReturn(Optional.empty());
+        // Order Mock 설정 (총액 20000L)
+        List<OrderItem> orderItems = new ArrayList<>();
+        OrderItem orderItem = OrderItem.create(1L, 2, 10000L);
+        orderItems.add(orderItem);
 
-        Payment savedPayment = Payment.create(orderId, new Price(amount));
+        Order order = Order.create(userId, orderItems, new Price(20000L));
+        order.assignId(orderId);
+
+        given(orderRepository.findById(orderId)).willReturn(Optional.of(order));
+
+        Payment savedPayment = Payment.create(orderId, new Price(20000L), null, 0L);
         savedPayment.assignId(1L);
         savedPayment.complete();
 
@@ -49,123 +75,31 @@ class CreatePaymentTestUseCase {
         // then
         assertThat(result).isNotNull();
         assertThat(result.orderId()).isEqualTo(orderId);
-        assertThat(result.amount()).isEqualTo(amount);
+        assertThat(result.amount()).isEqualTo(20000L);
         assertThat(result.status()).isEqualTo(PaymentStatus.SUCCESS);
         assertThat(result.paidAt()).isNotNull();
 
-        verify(paymentRepository, times(1)).findByOrderId(orderId);
+        verify(orderRepository, times(1)).findById(orderId);
         verify(paymentRepository, times(1)).save(any(Payment.class));
+        verify(productRepository, times(1)).deductStock(1L, 2);
     }
 
     @Test
-    @DisplayName("이미 결제된 주문이면 예외가 발생한다")
-    void 이미_결제된_주문이면_예외가_발생한다() {
+    @DisplayName("주문을 찾을 수 없으면 예외가 발생한다")
+    void 주문을_찾을_수_없으면_예외가_발생한다() {
         // given
         Long orderId = 1L;
-        Long amount = 50000L;
-        Pay command = new Pay(orderId, amount, 100L, null);
+        Long userId = 100L;
+        Pay command = new Pay(orderId, 50000L, userId, null, null);
 
-        Payment existingPayment = Payment.create(orderId, new Price(amount));
-        existingPayment.complete();
-
-        given(paymentRepository.findByOrderId(orderId)).willReturn(Optional.of(existingPayment));
+        given(orderRepository.findById(orderId)).willReturn(Optional.empty());
 
         // when & then
         assertThatThrownBy(() -> createPaymentUseCase.execute(command))
-                .isInstanceOf(IllegalStateException.class)
-                .hasMessage("이미 결제된 주문입니다.");
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessage("존재하지 않는 주문입니다. orderId=" + orderId);
 
-        verify(paymentRepository, times(1)).findByOrderId(orderId);
+        verify(orderRepository, times(1)).findById(orderId);
         verify(paymentRepository, never()).save(any(Payment.class));
-    }
-
-    @Test
-    @DisplayName("결제가 PENDING 상태였던 주문은 다시 결제할 수 있다")
-    void 결제가_PENDING_상태였던_주문은_다시_결제할_수_있다() {
-        // given
-        Long orderId = 1L;
-        Long amount = 50000L;
-        Pay command = new Pay(orderId, amount, 100L, null);
-
-        Payment existingPayment = Payment.create(orderId, new Price(amount));
-        // PENDING 상태 유지 (complete() 호출 안 함)
-
-        given(paymentRepository.findByOrderId(orderId)).willReturn(Optional.of(existingPayment));
-
-        Payment savedPayment = Payment.create(orderId, new Price(amount));
-        savedPayment.assignId(1L);
-        savedPayment.complete();
-
-        given(paymentRepository.save(any(Payment.class))).willReturn(savedPayment);
-
-        // when
-        PaymentInfo.Result result = createPaymentUseCase.execute(command);
-
-        // then
-        assertThat(result).isNotNull();
-        assertThat(result.status()).isEqualTo(PaymentStatus.SUCCESS);
-
-        verify(paymentRepository, times(1)).findByOrderId(orderId);
-        verify(paymentRepository, times(1)).save(any(Payment.class));
-    }
-
-    @Test
-    @DisplayName("결제가 FAILED 상태였던 주문은 다시 결제할 수 있다")
-    void 결제가_FAILED_상태였던_주문은_다시_결제할_수_있다() {
-        // given
-        Long orderId = 1L;
-        Long amount = 50000L;
-        Pay command = new Pay(orderId, amount, 100L, null);
-
-        Payment existingPayment = Payment.create(orderId, new Price(amount));
-        existingPayment.fail(); // FAILED 상태로 변경
-
-        given(paymentRepository.findByOrderId(orderId)).willReturn(Optional.of(existingPayment));
-
-        Payment savedPayment = Payment.create(orderId, new Price(amount));
-        savedPayment.assignId(1L);
-        savedPayment.complete();
-
-        given(paymentRepository.save(any(Payment.class))).willReturn(savedPayment);
-
-        // when
-        PaymentInfo.Result result = createPaymentUseCase.execute(command);
-
-        // then
-        assertThat(result).isNotNull();
-        assertThat(result.status()).isEqualTo(PaymentStatus.SUCCESS);
-
-        verify(paymentRepository, times(1)).findByOrderId(orderId);
-        verify(paymentRepository, times(1)).save(any(Payment.class));
-    }
-
-    @Test
-    @DisplayName("Payment 객체가 올바르게 생성되고 complete 상태가 된다")
-    void Payment_객체가_올바르게_생성되고_complete_상태가_된다() {
-        // given
-        Long orderId = 1L;
-        Long amount = 50000L;
-        Pay command = new Pay(orderId, amount, 100L, null);
-
-        given(paymentRepository.findByOrderId(orderId)).willReturn(Optional.empty());
-
-        ArgumentCaptor<Payment> paymentCaptor = ArgumentCaptor.forClass(Payment.class);
-
-        Payment savedPayment = Payment.create(orderId, new Price(amount));
-        savedPayment.assignId(1L);
-        savedPayment.complete();
-
-        given(paymentRepository.save(any(Payment.class))).willReturn(savedPayment);
-
-        // when
-        createPaymentUseCase.execute(command);
-
-        // then
-        verify(paymentRepository).save(paymentCaptor.capture());
-        Payment capturedPayment = paymentCaptor.getValue();
-
-        assertThat(capturedPayment.getOrderId()).isEqualTo(orderId);
-        assertThat(capturedPayment.getAmount().getValue()).isEqualTo(amount);
-        assertThat(capturedPayment.getStatus()).isEqualTo(PaymentStatus.SUCCESS);
     }
 }

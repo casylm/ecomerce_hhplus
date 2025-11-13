@@ -13,6 +13,7 @@ import me.seyoung.ecomerce.api.dto.balance.StockResponse;
 import me.seyoung.ecomerce.api.dto.product.PopularProductResponse;
 import me.seyoung.ecomerce.api.dto.product.ProductDetailResponse;
 import me.seyoung.ecomerce.api.dto.product.ProductResponse;
+import org.springframework.context.annotation.Profile;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -20,6 +21,7 @@ import java.util.List;
 @Tag(name = "Product", description = "상품 관련 API")
 @RestController
 @RequestMapping("/api/products")
+@Profile("swagger-only")
 public class ProductApiController {
 
     @Operation(

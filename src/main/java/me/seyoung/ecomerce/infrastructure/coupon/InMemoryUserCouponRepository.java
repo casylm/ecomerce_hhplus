@@ -62,8 +62,7 @@ public class InMemoryUserCouponRepository implements UserCouponRepository {
     }
 
     @Override
-    public boolean existsByUserIdAndCouponId(Long userId, Long couponId) {
-        return userCouponStore.values().stream()
-                .anyMatch(uc -> uc.getUserId().equals(userId) && uc.getCouponId().equals(couponId));
+    public int getRemainingQuantity(Long couponId) {
+        return 0;
     }
 }

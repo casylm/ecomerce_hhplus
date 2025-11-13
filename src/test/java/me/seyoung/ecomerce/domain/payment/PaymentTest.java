@@ -16,7 +16,7 @@ class PaymentTest {
         Price amount = new Price(50000L);
 
         // when
-        Payment payment = Payment.create(orderId, amount);
+        Payment payment = Payment.create(orderId, amount, null, 0L);
 
         // then
         assertThat(payment.getOrderId()).isEqualTo(orderId);
@@ -30,7 +30,7 @@ class PaymentTest {
     @DisplayName("Payment 완료 시 SUCCESS 상태로 변경되고 paidAt이 설정된다")
     void Payment_완료_시_SUCCESS_상태() {
         // given
-        Payment payment = Payment.create(1L, new Price(50000L));
+        Payment payment = Payment.create(1L, new Price(50000L), null, 0L);
 
         // when
         payment.complete();
@@ -44,7 +44,7 @@ class PaymentTest {
     @DisplayName("이미 완료된 Payment를 다시 완료하면 예외가 발생한다")
     void 이미_완료된_Payment_재완료_시_예외() {
         // given
-        Payment payment = Payment.create(1L, new Price(50000L));
+        Payment payment = Payment.create(1L, new Price(50000L), null, 0L);
         payment.complete();
 
         // when & then
@@ -57,7 +57,7 @@ class PaymentTest {
     @DisplayName("PENDING 상태의 Payment를 실패 처리하면 FAILED 상태로 변경된다")
     void PENDING_상태_Payment_실패_처리() {
         // given
-        Payment payment = Payment.create(1L, new Price(50000L));
+        Payment payment = Payment.create(1L, new Price(50000L), null, 0L);
 
         // when
         payment.fail();
@@ -70,7 +70,7 @@ class PaymentTest {
     @DisplayName("SUCCESS 상태의 Payment를 실패 처리하면 예외가 발생한다")
     void SUCCESS_상태_Payment_실패_처리_시_예외() {
         // given
-        Payment payment = Payment.create(1L, new Price(50000L));
+        Payment payment = Payment.create(1L, new Price(50000L), null, 0L);
         payment.complete();
 
         // when & then
@@ -83,7 +83,7 @@ class PaymentTest {
     @DisplayName("SUCCESS 상태의 Payment를 취소하면 CANCELLED 상태로 변경되고 cancelledAt이 설정된다")
     void SUCCESS_상태_Payment_취소() {
         // given
-        Payment payment = Payment.create(1L, new Price(50000L));
+        Payment payment = Payment.create(1L, new Price(50000L), null, 0L);
         payment.complete();
 
         // when
@@ -98,7 +98,7 @@ class PaymentTest {
     @DisplayName("PENDING 상태의 Payment를 취소하면 예외가 발생한다")
     void PENDING_상태_Payment_취소_시_예외() {
         // given
-        Payment payment = Payment.create(1L, new Price(50000L));
+        Payment payment = Payment.create(1L, new Price(50000L), null, 0L);
 
         // when & then
         assertThatThrownBy(() -> payment.cancel())
@@ -110,7 +110,7 @@ class PaymentTest {
     @DisplayName("FAILED 상태의 Payment를 취소하면 예외가 발생한다")
     void FAILED_상태_Payment_취소_시_예외() {
         // given
-        Payment payment = Payment.create(1L, new Price(50000L));
+        Payment payment = Payment.create(1L, new Price(50000L), null, 0L);
         payment.fail();
 
         // when & then
@@ -123,7 +123,7 @@ class PaymentTest {
     @DisplayName("CANCELLED 상태의 Payment를 다시 취소하면 예외가 발생한다")
     void CANCELLED_상태_Payment_재취소_시_예외() {
         // given
-        Payment payment = Payment.create(1L, new Price(50000L));
+        Payment payment = Payment.create(1L, new Price(50000L), null, 0L);
         payment.complete();
         payment.cancel();
 
@@ -137,7 +137,7 @@ class PaymentTest {
     @DisplayName("Payment에 ID를 할당할 수 있다")
     void Payment_ID_할당() {
         // given
-        Payment payment = Payment.create(1L, new Price(50000L));
+        Payment payment = Payment.create(1L, new Price(50000L), null, 0L);
         Long assignedId = 100L;
 
         // when
@@ -155,10 +155,10 @@ class PaymentTest {
         Price amount = new Price(123456L);
 
         // when
-        Payment payment = Payment.create(orderId, amount);
+        Payment payment = Payment.create(orderId, amount, null, 0L);
 
         // then
-        assertThat(payment.getAmount().getValue()).isEqualTo(123456L);
+        assertThat(payment.getAmount()).isEqualTo(123456L);
     }
 
     @Test
@@ -169,7 +169,7 @@ class PaymentTest {
         Price amount = new Price(50000L);
 
         // when
-        Payment payment = Payment.create(orderId, amount);
+        Payment payment = Payment.create(orderId, amount, null, 0L);
 
         // then
         assertThat(payment.getOrderId()).isEqualTo(orderId);
@@ -179,7 +179,7 @@ class PaymentTest {
     @DisplayName("결제 상태 전환 시나리오: PENDING -> SUCCESS -> CANCELLED")
     void 결제_상태_전환_시나리오() {
         // given
-        Payment payment = Payment.create(1L, new Price(50000L));
+        Payment payment = Payment.create(1L, new Price(50000L), null, 0L);
 
         // when & then - PENDING
         assertThat(payment.getStatus()).isEqualTo(PaymentStatus.PENDING);
@@ -199,7 +199,7 @@ class PaymentTest {
     @DisplayName("결제 실패 시나리오: PENDING -> FAILED")
     void 결제_실패_시나리오() {
         // given
-        Payment payment = Payment.create(1L, new Price(50000L));
+        Payment payment = Payment.create(1L, new Price(50000L), null, 0L);
 
         // when
         payment.fail();

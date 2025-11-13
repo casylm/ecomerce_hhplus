@@ -37,7 +37,7 @@ class CompleteOrderUseCaseTest {
         Long orderId = 1L;
         Long userId = 100L;
 
-        List<OrderItem> items = List.of(new OrderItem(200L, 2, 10000L));
+        List<OrderItem> items = List.of(OrderItem.create(200L, 2, 10000L));
         Order order = Order.create(userId, items, new Price(20000L));
         order.assignId(orderId);
         order.markAsPaid(); // 결제 완료 상태로 변경
@@ -74,7 +74,7 @@ class CompleteOrderUseCaseTest {
         Long orderId = 1L;
         Long userId = 100L;
 
-        List<OrderItem> items = List.of(new OrderItem(200L, 1, 10000L));
+        List<OrderItem> items = List.of(OrderItem.create(200L, 1, 10000L));
         Order order = Order.create(userId, items, new Price(10000L));
         order.assignId(orderId);
         // 결제 완료 처리를 하지 않음 (CREATED 상태)
@@ -94,7 +94,7 @@ class CompleteOrderUseCaseTest {
         Long orderId = 1L;
         Long userId = 100L;
 
-        List<OrderItem> items = List.of(new OrderItem(200L, 1, 10000L));
+        List<OrderItem> items = List.of(OrderItem.create(200L, 1, 10000L));
         Order order = Order.create(userId, items, new Price(10000L));
         order.assignId(orderId);
         order.markAsPaid();
@@ -115,7 +115,7 @@ class CompleteOrderUseCaseTest {
         Long orderId = 1L;
         Long userId = 100L;
 
-        List<OrderItem> items = List.of(new OrderItem(200L, 1, 10000L));
+        List<OrderItem> items = List.of(OrderItem.create(200L, 1, 10000L));
         Order order = Order.create(userId, items, new Price(10000L));
         order.assignId(orderId);
         order.cancel(); // 주문 취소됨
@@ -136,9 +136,9 @@ class CompleteOrderUseCaseTest {
         Long userId = 100L;
 
         List<OrderItem> items = List.of(
-                new OrderItem(201L, 2, 10000L),
-                new OrderItem(202L, 3, 5000L),
-                new OrderItem(203L, 1, 20000L)
+                OrderItem.create(201L, 2, 10000L),
+                OrderItem.create(202L, 3, 5000L),
+                OrderItem.create(203L, 1, 20000L)
         );
         Order order = Order.create(userId, items, new Price(55000L));
         order.assignId(orderId);
@@ -162,7 +162,7 @@ class CompleteOrderUseCaseTest {
         Long orderId = 1L;
         Long userId = 100L;
 
-        List<OrderItem> items = List.of(new OrderItem(200L, 1, 10000L));
+        List<OrderItem> items = List.of(OrderItem.create(200L, 1, 10000L));
         Order order = Order.create(userId, items, new Price(10000L));
         order.assignId(orderId);
 

@@ -32,7 +32,8 @@ public class PaymentController {
                 request.orderId(),
                 request.amount(),
                 request.userId(),
-                request.userCouponId()
+                request.userCouponId(),
+                request.pointToUse()
         );
 
         PaymentInfo.Result result = createPaymentUseCase.execute(command);
