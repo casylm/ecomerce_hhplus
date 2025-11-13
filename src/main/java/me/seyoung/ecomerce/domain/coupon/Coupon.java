@@ -1,21 +1,37 @@
 package me.seyoung.ecomerce.domain.coupon;
 
+import jakarta.persistence.*;
+import lombok.AccessLevel;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
 
 /**
- * 쿠폰 마스터 정보 (순수 도메인 모델)
+ * 쿠폰 마스터 정보
  * 발급 가능한 쿠폰의 기본 정보를 관리
- * JPA 어노테이션 없이 순수한 비즈니스 로직만 포함
  */
+@Entity
+@Table(name = "coupons")
 @Getter
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class Coupon {
 
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "coupon_id")
     private Long id;
+
+    @Column(nullable = false)
     private String name; // 쿠폰명
+
+    @Column(name = "discount_amount", nullable = false)
     private int discountAmount; // 할인 금액
+
+    @Column(nullable = false)
     private int quantity; // 전체 발급 가능 수량
+
+    @Column(name = "issued_at", nullable = false, updatable = false)
     private LocalDateTime issuedAt; // 쿠폰 생성 일시
 
     // 도메인 로직을 위한 생성자
@@ -29,7 +45,7 @@ public class Coupon {
         this.issuedAt = LocalDateTime.now();
     }
 
-    // 인프라 계층에서 복원할 때 사용하는 생성자
+    // 인프라 계층에서 복원할 때 사용하는 생성자 (JPA 사용 시 불필요하지만 호환성 유지)
     public Coupon(Long id, String name, int discountAmount, int quantity, LocalDateTime issuedAt) {
         this.id = id;
         this.name = name;

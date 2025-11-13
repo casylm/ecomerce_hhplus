@@ -98,15 +98,4 @@ class UserCouponTest {
         assertThat(isOwner).isFalse();
     }
 
-    @Test
-    void 사용자_쿠폰에_ID를_할당한다() {
-        // given
-        UserCoupon userCoupon = new UserCoupon(1L, 100L);
-
-        // when
-        userCoupon.assignId(10L);
-
-        // then
-        assertThat(userCoupon.getId()).isEqualTo(10L);
-    }
 }
