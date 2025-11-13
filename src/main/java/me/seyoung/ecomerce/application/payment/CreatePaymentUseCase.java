@@ -33,7 +33,7 @@ public class CreatePaymentUseCase {
                 .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 주문입니다. orderId=" + command.orderId()));
 
         // 주문에서 상품 총액 가져오기
-        long totalAmount = order.getTotalPrice().getValue();
+        long totalAmount = order.getTotalPrice();
         long discountAmount = 0;
 
         // 2. 쿠폰 사용 처리 및 할인 적용 (ApplyCouponUseCase 사용)

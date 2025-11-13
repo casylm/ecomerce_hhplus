@@ -6,6 +6,10 @@ import lombok.Value;
 public class Price {
     long value;
 
+    public long getAmount() {
+        return this.value;
+    }
+
     public Price add(Price other) {
         return new Price(this.value + other.value);
     }

@@ -4,6 +4,7 @@ public record CreatePaymentRequest(
         Long orderId,
         Long amount,
         Long userId,
-        Long userCouponId  // nullable
+        Long userCouponId,  // nullable
+        Long pointToUse     // nullable
 ) {
 }

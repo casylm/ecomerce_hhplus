@@ -17,7 +17,7 @@ public class PaymentInfo {
             return Result.builder()
                     .paymentId(payment.getId())
                     .orderId(payment.getOrderId())
-                    .amount(payment.getAmount().getValue())
+                    .amount(payment.getAmount())
                     .status(payment.getStatus())
                     .paidAt(payment.getPaidAt())
                     .cancelledAt(payment.getCancelledAt())
