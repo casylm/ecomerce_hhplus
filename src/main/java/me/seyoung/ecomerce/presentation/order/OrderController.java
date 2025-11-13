@@ -24,7 +24,7 @@ public class OrderController {
     @PostMapping
     public ResponseEntity<CreateOrderResponse> createOrder(@RequestBody CreateOrderRequest request) {
         List<OrderItem> items = request.items().stream()
-                .map(item -> new OrderItem(item.productId(), item.quantity(), item.pricePerItem()))
+                .map(item -> OrderItem.create(item.productId(), item.quantity(), item.pricePerItem()))
                 .toList();
 
         Long orderId;
@@ -52,15 +52,9 @@ public class OrderController {
     public ResponseEntity<Void> cancelOrder(
             @PathVariable Long orderId,
             @RequestBody(required = false) CancelOrderRequest request) {
-        if (request != null && (request.usedCouponId() != null || request.usedPointAmount() != null)) {
-            cancelOrderUseCase.cancel(
-                    orderId,
-                    request.usedCouponId(),
-                    request.usedPointAmount()
-            );
-        } else {
-            cancelOrderUseCase.cancel(orderId);
-        }
+        Long usedCouponId = request != null ? request.usedCouponId() : null;
+        Long usedPointAmount = request != null ? request.usedPointAmount() : null;
+        cancelOrderUseCase.cancel(orderId, usedCouponId, usedPointAmount);
         return ResponseEntity.ok().build();
     }
 }

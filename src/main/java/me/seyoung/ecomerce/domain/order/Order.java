@@ -1,29 +1,50 @@
 package me.seyoung.ecomerce.domain.order;
 
+import jakarta.persistence.*;
+import lombok.AccessLevel;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import me.seyoung.ecomerce.domain.payment.Price;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 
+@Entity
+@Table(name = "orders")
 @Getter
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class Order {
 
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "order_id")
     private Long id;                        // 식별자 (Repository에서 부여)
-    private final Long userId;
-    private final List<OrderItem> items;
 
-    private final Price totalPrice;         // 할인 전 총액
-    private Price finalPrice;               // 할인 후 총액
+    @Column(name = "user_id", nullable = false)
+    private Long userId;
 
+    @Transient
+    private List<OrderItem> items = new ArrayList<>();
+
+    @Column(name = "total_price", nullable = false)
+    private Long totalPrice;         // 할인 전 총액
+
+    @Column(name = "final_price", nullable = false)
+    private Long finalPrice;               // 할인 후 총액
+
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
     private OrderStatus status;
-    private final LocalDateTime orderedAt;
+
+    @Column(name = "ordered_at", nullable = false, updatable = false)
+    private LocalDateTime orderedAt;
 
     private Order(Long userId, List<OrderItem> items, Price totalPrice, Price finalPrice) {
         this.userId = userId;
-        this.items = items;
-        this.totalPrice = totalPrice;
-        this.finalPrice = finalPrice;
+        this.items = items != null ? new ArrayList<>(items) : new ArrayList<>();
+        this.totalPrice = totalPrice.getAmount();
+        this.finalPrice = finalPrice.getAmount();
         this.status = OrderStatus.CREATED;
         this.orderedAt = LocalDateTime.now();
     }
@@ -46,6 +67,20 @@ public class Order {
     // Repository에서 ID 할당 시 사용
     public void assignId(Long id) {
         this.id = id;
+    }
+
+    // items 설정 (Repository에서 조회 시 사용)
+    public void setItems(List<OrderItem> items) {
+        this.items = items != null ? new ArrayList<>(items) : new ArrayList<>();
+    }
+
+    // Price 객체 반환 메서드
+    public Price getTotalPriceAsObject() {
+        return new Price(this.totalPrice);
+    }
+
+    public Price getFinalPriceAsObject() {
+        return new Price(this.finalPrice);
     }
 
     // 결제 완료 처리
