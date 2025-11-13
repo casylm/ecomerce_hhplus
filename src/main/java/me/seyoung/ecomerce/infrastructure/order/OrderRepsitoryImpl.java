@@ -18,36 +18,69 @@ import java.util.Optional;
 @RequiredArgsConstructor
 public class OrderRepsitoryImpl implements OrderRepository {
 
-    private final OrderJpaRepository orderItemJpaRepository;
+    private final OrderJpaRepository orderJpaRepository;
+    private final OrderItemJpaRepository orderItemJpaRepository;
 
     @Override
     public Order save(Order order) {
-        return null;
+        // Order 저장
+        Order savedOrder = orderJpaRepository.save(order);
+
+        // OrderItem들 저장
+        if (savedOrder.getItems() != null && !savedOrder.getItems().isEmpty()) {
+            for (OrderItem item : savedOrder.getItems()) {
+                item.assignOrderId(savedOrder.getId());
+                orderItemJpaRepository.save(item);
+            }
+        }
+
+        return savedOrder;
     }
 
     @Override
     public Optional<Order> findById(Long orderId) {
-        return Optional.empty();
+        Optional<Order> orderOpt = orderJpaRepository.findById(orderId);
+
+        if (orderOpt.isPresent()) {
+            Order order = orderOpt.get();
+            // OrderItem들 조회 및 설정
+            List<OrderItem> items = orderItemJpaRepository.findByOrderId(orderId);
+            order.setItems(items);
+        }
+
+        return orderOpt;
     }
 
     @Override
     public List<Order> findOrdersWithinDays(int days) {
-        return null;
+        LocalDateTime since = LocalDateTime.now().minusDays(days);
+        List<Order> orders = orderJpaRepository.findOrdersSince(since);
+
+        // 각 Order에 OrderItem들 설정
+        for (Order order : orders) {
+            List<OrderItem> items = orderItemJpaRepository.findByOrderId(order.getId());
+            order.setItems(items);
+        }
+
+        return orders;
     }
 
     @Override
     public List<OrderItem> findOrderItemsWithinDays(int days) {
-        return null;
+        LocalDateTime since = LocalDateTime.now().minusDays(days);
+        return orderItemJpaRepository.findOrderItemsSince(since);
     }
 
     @Override
     public Map<Long, Long> getSalesCountByProduct(int days) {
         LocalDateTime since = LocalDateTime.now().minusDays(days);
-        List<ProductSalesProjection> results = orderItemJpaRepository.countSalesByProductSince(since);
+        List<Object[]> results = orderItemJpaRepository.countSalesByProductSince(since);
 
         Map<Long, Long> salesByProduct = new HashMap<>();
-        for (ProductSalesProjection result : results) {
-            salesByProduct.put(result.getProductId(), result.getTotalQuantity());
+        for (Object[] result : results) {
+            Long productId = (Long) result[0];
+            Long totalQuantity = (Long) result[1];
+            salesByProduct.put(productId, totalQuantity);
         }
 
         return salesByProduct;
