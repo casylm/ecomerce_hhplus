@@ -80,8 +80,10 @@ class CreateOrderUseCaseTest {
                 .isInstanceOf(IllegalStateException.class)
                 .hasMessageContaining("재고가 부족합니다");
 
-        verify(productRepository, never()).deductStock(any(), anyInt());
-        verify(orderRepository, never()).save(any());
+        // 재고 차감은 주문 단계에서 절대 일어나면 안 됨
+        verify(productRepository, never()).findById(any());
+        verify(productRepository, never()).save(any());
+
     }
 
     @Test

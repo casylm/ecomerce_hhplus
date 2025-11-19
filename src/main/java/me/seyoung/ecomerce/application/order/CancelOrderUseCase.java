@@ -13,9 +13,6 @@ import org.springframework.stereotype.Service;
 public class CancelOrderUseCase {
 
     private final OrderRepository orderRepository;
-    private final ProductRepository productRepository;
-    private final PointRepository pointRepository;
-    private final UserCouponRepository userCouponRepository;
 
     public void cancel(Long orderId, Long usedCouponId, Long usedPointAmount) {
         // 1. 주문 조회

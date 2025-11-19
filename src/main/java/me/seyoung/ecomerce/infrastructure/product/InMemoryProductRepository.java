@@ -72,35 +72,4 @@ public class InMemoryProductRepository implements ProductRepository {
         store.put(product.getId(), product);
         return product;
     }
-
-    @Override
-    public Optional<Product> deductStock(Long productId, int quantity) {
-        Product product = store.get(productId);
-
-        // 상품 없으면 빈 Optional 반환
-        if (product == null) {
-            return Optional.empty();
-        }
-
-        product.decreaseStock(quantity);
-        store.put(productId, product);
-
-        return Optional.of(product);
-    }
-
-    @Override
-    public Optional<Product> restoreStock(Long productId, int quantity) {
-        Product product = store.get(productId);
-
-        // 상품 없으면 빈 Optional 반환
-        if (product == null) {
-            return Optional.empty();
-        }
-
-        // 재고 복구
-        product.increaseStock(quantity);
-        store.put(productId, product);
-
-        return Optional.of(product);
-    }
 }
