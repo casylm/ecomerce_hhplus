@@ -19,9 +19,6 @@ public interface ProductRepository {
     // 상품 저장
     Product save(Product product);
 
-    // 재고 차감
-    Optional<Product> deductStock(Long productId, int quantity);
-
-    // 재고 복구
-    Optional<Product> restoreStock(Long productId, int quantity);
+    // 상품조회(락)
+    Optional<Product> findByIdForUpdate(Long id);
 }

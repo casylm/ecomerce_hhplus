@@ -29,10 +29,12 @@ class DeductStockUseCaseTest {
     void 재고를_차감한다() {
         // given
         Product product = new Product(1L, "노트북", 1500000L, 10, "전자제품");
-        product.decreaseStock(3);
 
-        when(productRepository.deductStock(1L, 3))
+        when(productRepository.findById(1L))
                 .thenReturn(Optional.of(product));
+
+        when(productRepository.save(product))
+                .thenReturn(product);
 
         // when
         ProductInfo.StockDecrease result = deductStockUseCase.execute(1L, 3);

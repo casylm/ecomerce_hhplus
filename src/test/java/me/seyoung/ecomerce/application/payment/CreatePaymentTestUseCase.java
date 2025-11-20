@@ -81,7 +81,6 @@ class CreatePaymentTestUseCase {
 
         verify(orderRepository, times(1)).findById(orderId);
         verify(paymentRepository, times(1)).save(any(Payment.class));
-        verify(productRepository, times(1)).deductStock(1L, 2);
     }
 
     @Test

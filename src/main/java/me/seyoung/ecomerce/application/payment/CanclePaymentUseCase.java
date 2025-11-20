@@ -14,11 +14,14 @@ import me.seyoung.ecomerce.domain.point.PointHistory;
 import me.seyoung.ecomerce.domain.point.PointHistoryRepository;
 import me.seyoung.ecomerce.domain.point.PointRepository;
 import me.seyoung.ecomerce.domain.point.PointStatus;
+import me.seyoung.ecomerce.domain.product.Product;
 import me.seyoung.ecomerce.domain.product.ProductRepository;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor
+@Transactional
 public class CanclePaymentUseCase {
 
     private final PaymentRepository paymentRepository;
@@ -42,7 +45,17 @@ public class CanclePaymentUseCase {
 
         // 4. 재고 복구
         for (OrderItem item : order.getItems()) {
-            productRepository.restoreStock(item.getProductId(), item.getQuantity());
+            // 1. 복구 대상 상품 조회
+            Product product = productRepository.findByIdForUpdate(item.getProductId())
+                    .orElseThrow(() ->
+                            new IllegalArgumentException("상품이 존재하지 않습니다. productId=" + item.getProductId())
+                    );
+
+            // 2. 도메인 로직: 재고 복구
+            product.increaseStock(item.getQuantity());
+
+            // 3. 저장
+            productRepository.save(product);
         }
 
         // 5. 포인트 반환 (사용한 경우에만)

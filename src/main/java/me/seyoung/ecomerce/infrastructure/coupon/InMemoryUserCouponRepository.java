@@ -11,9 +11,6 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.stream.Collectors;
 
-/**
- * 사용자 쿠폰 인메모리 Repository
- */
 @Component
 public class InMemoryUserCouponRepository implements UserCouponRepository {
 

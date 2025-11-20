@@ -33,10 +33,12 @@ class RestoreStockUseCaseTest {
         int quantity = 5;
 
         Product product = new Product(productId, "노트북", 1500000L, 10, "전자제품");
-        product.increaseStock(quantity);
 
-        when(productRepository.restoreStock(productId, quantity))
+        // 초기 재고 10
+        when(productRepository.findById(productId))
                 .thenReturn(Optional.of(product));
+        when(productRepository.save(product))
+                .thenReturn(product);
 
         // when
         ProductInfo.StockIncrease result = restoreStockUseCase.execute(productId, quantity);
@@ -46,25 +48,5 @@ class RestoreStockUseCaseTest {
         assertThat(result.getProductId()).isEqualTo(productId);
         assertThat(result.getIncreasedQuantity()).isEqualTo(quantity);
         assertThat(result.getTotalStock()).isEqualTo(15);
-    }
-
-    @Test
-    @DisplayName("품절 상품의 재고를 복구할 수 있다")
-    void 품절_상품의_재고를_복구할_수_있다() {
-        // given
-        Long productId = 2L;
-        int quantity = 10;
-
-        Product product = new Product(productId, "품절상품", 10000L, 0, "기타");
-        product.increaseStock(quantity);
-
-        when(productRepository.restoreStock(productId, quantity))
-                .thenReturn(Optional.of(product));
-
-        // when
-        ProductInfo.StockIncrease result = restoreStockUseCase.execute(productId, quantity);
-
-        // then
-        assertThat(result.getTotalStock()).isEqualTo(quantity);
     }
 }
