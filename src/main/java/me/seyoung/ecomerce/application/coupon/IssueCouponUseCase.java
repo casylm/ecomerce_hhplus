@@ -8,9 +8,11 @@ import me.seyoung.ecomerce.domain.coupon.UserCouponRepository;
 import me.seyoung.ecomerce.domain.user.User;
 import me.seyoung.ecomerce.domain.user.UserRepository;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor
+@Transactional
 public class IssueCouponUseCase {
     private final CouponRepository couponRepository;
     private final UserCouponRepository userCouponRepository;
@@ -26,7 +28,7 @@ public class IssueCouponUseCase {
         Coupon coupon = couponRepository.findByIdWithLock(couponId)
                 .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 쿠폰입니다."));
 
-        // 3. 쿠폰 재고 확인 및 차감 (원자적으로 처리됨)
+        // 3. 쿠폰 재고 확인 및 차감
         if (!coupon.hasStock()) {
             throw new IllegalStateException("쿠폰 재고가 소진되었습니다.");
         }

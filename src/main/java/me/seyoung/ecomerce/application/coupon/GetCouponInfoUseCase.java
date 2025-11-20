@@ -6,9 +6,11 @@ import me.seyoung.ecomerce.domain.coupon.CouponRepository;
 import me.seyoung.ecomerce.domain.coupon.UserCoupon;
 import me.seyoung.ecomerce.domain.coupon.UserCouponRepository;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor
+@Transactional(readOnly = true)
 public class GetCouponInfoUseCase {
     private final CouponRepository couponRepository;
     private final UserCouponRepository userCouponRepository;

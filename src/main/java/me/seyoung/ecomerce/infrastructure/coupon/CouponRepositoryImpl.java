@@ -9,10 +9,6 @@ import org.springframework.stereotype.Repository;
 import java.util.List;
 import java.util.Optional;
 
-/**
- * 쿠폰 Repository 구현체
- * JPA를 사용하여 동시성 제어
- */
 @Repository
 @Primary
 @RequiredArgsConstructor

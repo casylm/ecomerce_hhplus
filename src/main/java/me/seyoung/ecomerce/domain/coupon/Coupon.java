@@ -4,6 +4,7 @@ import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 import java.time.LocalDateTime;
 
@@ -14,6 +15,7 @@ import java.time.LocalDateTime;
 @Entity
 @Table(name = "coupons")
 @Getter
+@Setter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class Coupon {
 
@@ -33,6 +35,9 @@ public class Coupon {
 
     @Column(name = "issued_at", nullable = false, updatable = false)
     private LocalDateTime issuedAt; // 쿠폰 생성 일시
+
+    @Version
+    private Long version;
 
     // 도메인 로직을 위한 생성자
     public Coupon(String name, int discountAmount, int quantity) {

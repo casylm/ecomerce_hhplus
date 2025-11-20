@@ -11,6 +11,7 @@ import java.util.Optional;
 
 public interface CouponJpaRepository extends JpaRepository<Coupon, Long> {
 
+    // 비관적락 적용 - 쿠폰: 공유자원
     @Lock(LockModeType.PESSIMISTIC_WRITE)
     @Query("SELECT c FROM Coupon c WHERE c.id = :couponId")
     Optional<Coupon> findByIdWithLock(@Param("couponId") Long couponId);

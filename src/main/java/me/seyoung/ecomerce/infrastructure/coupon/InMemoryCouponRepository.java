@@ -11,9 +11,6 @@ import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicLong;
 
-/**
- * 쿠폰 마스터 인메모리 Repository
- */
 @Component
 public class InMemoryCouponRepository implements CouponRepository {
 
