@@ -22,6 +22,9 @@ public class Point {
     @Column(nullable = false)
     private LocalDateTime updatedAt;
 
+    @Version
+    private Long version;   // 낙관적 락(자동 증가)
+
     protected Point() {} // JPA 기본 생성자
 
     public Point(Long userId, long balance) {
@@ -29,6 +32,7 @@ public class Point {
         this.userId = userId;
         this.balance = balance;
         this.updatedAt = LocalDateTime.now();
+        this.version = 0L;
     }
 
     private static final long MAX_BALANCE_AMOUNT = 1_000_000L;

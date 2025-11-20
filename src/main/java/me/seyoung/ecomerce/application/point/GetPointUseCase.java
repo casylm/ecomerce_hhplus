@@ -4,9 +4,11 @@ import lombok.RequiredArgsConstructor;
 import me.seyoung.ecomerce.domain.point.Point;
 import me.seyoung.ecomerce.domain.point.PointRepository;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor
+@Transactional(readOnly = true)
 public class GetPointUseCase {
     private final PointRepository pointRepository;
 

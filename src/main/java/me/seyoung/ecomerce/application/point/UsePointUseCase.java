@@ -7,9 +7,11 @@ import me.seyoung.ecomerce.domain.point.PointRepository;
 import me.seyoung.ecomerce.domain.point.PointStatus;
 import me.seyoung.ecomerce.domain.user.UserRepository;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor
+@Transactional
 public class UsePointUseCase {
     private final PointRepository pointRepository;
     private final UserRepository userRepository;
