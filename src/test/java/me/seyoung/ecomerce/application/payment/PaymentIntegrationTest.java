@@ -111,4 +111,79 @@ class PaymentIntegrationTest extends AbstractContainerBaseTest {
         Payment cancelledPayment = paymentRepository.findById(paymentResult.paymentId()).orElseThrow();
         assertThat(cancelledPayment.getStatus()).isEqualTo(PaymentStatus.CANCELLED);
     }
+
+    @Test
+    @DisplayName("[핵심 동시성] 재고 10개인 상품에 20명이 동시 결제 시 비관적 락으로 10명만 성공한다")
+    void 동시_결제시_재고_초과_방지_테스트() throws InterruptedException {
+        // given
+        int initialStock = 10;
+        int threadCount = 20;
+
+        // 재고 10개인 상품 생성
+        Product limitedProduct = new Product(null, "한정판상품", 10000L, initialStock, "한정판");
+        limitedProduct = productRepository.save(limitedProduct);
+
+        // 20명의 사용자 생성
+        List<User> users = new ArrayList<>();
+        for (int i = 0; i < threadCount; i++) {
+            User user = new User("동시결제유저" + i);
+            users.add(userRepository.save(user));
+        }
+
+        java.util.concurrent.ExecutorService executorService = java.util.concurrent.Executors.newFixedThreadPool(threadCount);
+        java.util.concurrent.CountDownLatch latch = new java.util.concurrent.CountDownLatch(threadCount);
+
+        java.util.concurrent.atomic.AtomicInteger successCount = new java.util.concurrent.atomic.AtomicInteger(0);
+        java.util.concurrent.atomic.AtomicInteger failCount = new java.util.concurrent.atomic.AtomicInteger(0);
+
+        Product finalProduct = limitedProduct;
+
+        // when - 20명이 동시에 같은 상품 1개씩 결제 시도
+        for (int i = 0; i < threadCount; i++) {
+            final int userIndex = i;
+            executorService.submit(() -> {
+                try {
+                    // 각 사용자가 주문 생성
+                    List<OrderItem> orderItems = new ArrayList<>();
+                    OrderItem orderItem = OrderItem.create(finalProduct.getId(), 1, finalProduct.getPrice());
+                    orderItems.add(orderItem);
+
+                    Long orderId = createOrderUseCase.execute(users.get(userIndex).getId(), orderItems);
+
+                    // 결제 시도 (재고 차감 발생)
+                    Pay payCommand = new Pay(orderId, finalProduct.getPrice(), users.get(userIndex).getId(), null, null);
+                    createPaymentUseCase.execute(payCommand);
+
+                    successCount.incrementAndGet();
+                } catch (IllegalStateException e) {
+                    // 재고 부족 예외
+                    if (e.getMessage().contains("재고가 부족합니다")) {
+                        failCount.incrementAndGet();
+                    }
+                } catch (Exception e) {
+                    failCount.incrementAndGet();
+                } finally {
+                    latch.countDown();
+                }
+            });
+        }
+
+        latch.await();
+        executorService.shutdown();
+
+        // then - 핵심 검증: 정확히 재고만큼만 성공
+        assertThat(successCount.get()).isEqualTo(initialStock);
+        assertThat(failCount.get()).isEqualTo(threadCount - initialStock);
+
+        // DB에서 최종 재고 확인 - 정확히 0이어야 함
+        Product finalProductState = productRepository.findById(finalProduct.getId()).orElseThrow();
+        assertThat(finalProductState.getStock()).isZero();
+
+        System.out.println("=== 결제 동시성 테스트 결과 ===");
+        System.out.println("초기 재고: " + initialStock);
+        System.out.println("동시 결제 시도: " + threadCount + "명");
+        System.out.println("성공한 결제: " + successCount.get());
+        System.out.println("실패한 결제: " + failCount.get());
+        System.out.println("최종 재고: " + finalProductState.getStock());
+    }
 }
