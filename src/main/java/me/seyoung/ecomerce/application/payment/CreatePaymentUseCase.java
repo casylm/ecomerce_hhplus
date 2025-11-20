@@ -9,11 +9,14 @@ import me.seyoung.ecomerce.domain.order.OrderRepository;
 import me.seyoung.ecomerce.domain.payment.*;
 import me.seyoung.ecomerce.domain.point.Point;
 import me.seyoung.ecomerce.domain.point.PointRepository;
+import me.seyoung.ecomerce.domain.product.Product;
 import me.seyoung.ecomerce.domain.product.ProductRepository;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor
+@Transactional
 public class CreatePaymentUseCase {
 
     private final PaymentRepository paymentRepository;
@@ -36,6 +39,7 @@ public class CreatePaymentUseCase {
         long totalAmount = order.getTotalPrice();
         long discountAmount = 0;
 
+        // 유저 내부에서 적용 - 낙관적락 사용
         // 2. 쿠폰 사용 처리 및 할인 적용 (ApplyCouponUseCase 사용)
         if (command.userCouponId() != null) {
             CouponInfo.CouponUseResult couponResult = applyCouponUseCase.execute(command.userId(), command.userCouponId());
@@ -43,6 +47,7 @@ public class CreatePaymentUseCase {
         }
 
         // 3. 포인트 차감 처리 및 할인 적용
+        // 낙관적락 - 동시에 2번 결제하면 한번만 성공, 개인자원
         long pointToUse = command.pointToUse() != null ? command.pointToUse() : 0L;
         if (pointToUse > 0) {
             Point point = pointRepository.findByUserId(command.userId())
@@ -58,7 +63,15 @@ public class CreatePaymentUseCase {
 
         // 4. 재고 실제 차감
         for (OrderItem item : order.getItems()) {
-            productRepository.deductStock(item.getProductId(), item.getQuantity());
+            // 1. 비관적 락으로 상품 조회 (overselling 방지)
+            Product product = productRepository.findByIdForUpdate(item.getProductId())
+                    .orElseThrow(() -> new IllegalArgumentException("상품이 존재하지 않습니다. productId=" + item.getProductId()));
+
+            // 2. 도메인 로직 실행 (정합성 규칙)
+            product.decreaseStock(item.getQuantity());
+
+            // 3. 영속화
+            productRepository.save(product);
         }
 
         // 5. 최종 결제 금액 계산
