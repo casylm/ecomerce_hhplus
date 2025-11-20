@@ -4,7 +4,9 @@ import lombok.RequiredArgsConstructor;
 import me.seyoung.ecomerce.application.product.dto.ProductInfo;
 import me.seyoung.ecomerce.domain.product.Product;
 import me.seyoung.ecomerce.domain.product.ProductRepository;
+import org.springframework.stereotype.Service;
 
+@Service
 @RequiredArgsConstructor
 public class RestoreStockUseCase {
 
@@ -13,7 +15,7 @@ public class RestoreStockUseCase {
     public ProductInfo.StockIncrease execute(Long productId, int quantity) {
 
         // 1. 재고 복구용 Product 조회
-        Product product = productRepository.findById(productId)
+        Product product = productRepository.findByIdForUpdate(productId)
                 .orElseThrow(() -> new IllegalArgumentException("상품이 존재하지 않습니다. productId=" + productId));
 
         // 2. 도메인 로직 실행

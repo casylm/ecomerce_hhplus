@@ -72,4 +72,10 @@ public class InMemoryProductRepository implements ProductRepository {
         store.put(product.getId(), product);
         return product;
     }
+
+    @Override
+    public Optional<Product> findByIdForUpdate(Long id) {
+        // InMemory 구현에서는 실제 락을 사용할 수 없으므로 일반 조회와 동일하게 동작
+        return findById(id);
+    }
 }

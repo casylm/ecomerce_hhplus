@@ -18,4 +18,7 @@ public interface ProductRepository {
 
     // 상품 저장
     Product save(Product product);
+
+    // 상품조회(락)
+    Optional<Product> findByIdForUpdate(Long id);
 }
