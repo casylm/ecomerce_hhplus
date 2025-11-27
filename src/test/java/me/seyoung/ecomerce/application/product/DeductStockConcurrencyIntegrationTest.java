@@ -4,6 +4,7 @@ import me.seyoung.ecomerce.application.AbstractContainerBaseTest;
 import me.seyoung.ecomerce.application.product.dto.ProductInfo;
 import me.seyoung.ecomerce.domain.product.Product;
 import me.seyoung.ecomerce.domain.product.ProductRepository;
+import me.seyoung.ecomerce.facade.RedissonLockStockFacade;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -19,8 +20,11 @@ import static org.assertj.core.api.Assertions.assertThat;
 @DisplayName("상품 재고 차감 동시성 통합 테스트")
 class DeductStockConcurrencyIntegrationTest extends AbstractContainerBaseTest {
 
+    //@Autowired
+    //private DeductStockUseCase deductStockUseCase;
+
     @Autowired
-    private DeductStockUseCase deductStockUseCase;
+    private RedissonLockStockFacade redissonLockStockFacade;
 
     @Autowired
     private ProductRepository productRepository;
@@ -50,7 +54,8 @@ class DeductStockConcurrencyIntegrationTest extends AbstractContainerBaseTest {
         for (int i = 0; i < threadCount; i++) {
             executorService.submit(() -> {
                 try {
-                    ProductInfo.StockDecrease result = deductStockUseCase.execute(testProduct.getId(), deductQuantity);
+                    //ProductInfo.StockDecrease result = deductStockUseCase.execute(testProduct.getId(), deductQuantity);
+                    ProductInfo.StockDecrease result = redissonLockStockFacade.decrease(testProduct.getId(), deductQuantity);
                     successCount.incrementAndGet();
                 } catch (Exception e) {
                     failCount.incrementAndGet();
@@ -94,7 +99,8 @@ class DeductStockConcurrencyIntegrationTest extends AbstractContainerBaseTest {
         for (int i = 0; i < threadCount; i++) {
             executorService.submit(() -> {
                 try {
-                    deductStockUseCase.execute(testProduct.getId(), deductQuantity);
+                    //deductStockUseCase.execute(testProduct.getId(), deductQuantity);
+                    redissonLockStockFacade.decrease(testProduct.getId(), deductQuantity);
                     successCount.incrementAndGet();
                 } catch (IllegalStateException e) {
                     // 재고 부족 예외
@@ -145,7 +151,8 @@ class DeductStockConcurrencyIntegrationTest extends AbstractContainerBaseTest {
         for (int i = 0; i < threadCount; i++) {
             executorService.submit(() -> {
                 try {
-                    deductStockUseCase.execute(savedLimitedProduct.getId(), deductQuantity);
+                    //deductStockUseCase.execute(savedLimitedProduct.getId(), deductQuantity);
+                    redissonLockStockFacade.decrease(savedLimitedProduct.getId(), deductQuantity);
                     successCount.incrementAndGet();
                 } catch (IllegalStateException e) {
                     if (e.getMessage().contains("재고가 부족합니다")) {
