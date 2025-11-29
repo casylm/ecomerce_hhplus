@@ -10,12 +10,16 @@ import org.springframework.stereotype.Service;
 @RequiredArgsConstructor
 public class RestoreStockUseCase {
 
-    private ProductRepository productRepository;
+    private final ProductRepository productRepository;
 
     public ProductInfo.StockIncrease execute(Long productId, int quantity) {
 
         // 1. 재고 복구용 Product 조회
-        Product product = productRepository.findByIdForUpdate(productId)
+        //Product product = productRepository.findByIdForUpdate(productId)
+        //        .orElseThrow(() -> new IllegalArgumentException("상품이 존재하지 않습니다. productId=" + productId));
+
+        // 1. 레디스 사용
+        Product product = productRepository.findById(productId)
                 .orElseThrow(() -> new IllegalArgumentException("상품이 존재하지 않습니다. productId=" + productId));
 
         // 2. 도메인 로직 실행

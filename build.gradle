@@ -45,6 +45,9 @@ dependencies {
 
     testImplementation "org.testcontainers:mysql"
     testImplementation "org.testcontainers:junit-jupiter"
+
+    implementation 'org.springframework.boot:spring-boot-starter-data-redis'
+    implementation 'org.redisson:redisson-spring-boot-starter:3.27.2'
 }
 
 tasks.named('test') {

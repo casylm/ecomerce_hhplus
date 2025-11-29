@@ -17,7 +17,11 @@ public class DeductStockUseCase {
     public ProductInfo.StockDecrease execute(Long productId, int quantity) {
 
         // 1. 재고 차감 대상 조회 (비관적 락으로 조회해야 함)
-        Product product = productRepository.findByIdForUpdate(productId)
+        //Product product = productRepository.findByIdForUpdate(productId)
+        //        .orElseThrow(() -> new IllegalArgumentException("상품이 존재하지 않습니다. productId=" + productId));
+
+        // 1. 레디스 사용
+        Product product = productRepository.findById(productId)
                 .orElseThrow(() -> new IllegalArgumentException("상품이 존재하지 않습니다. productId=" + productId));
 
         // 2. 도메인 로직(엔티티 비즈니스 로직) 수행
