@@ -20,10 +20,10 @@ public class RedissonLockStockFacade {
     private final RestoreStockUseCase restoreStockUseCase;
 
     public ProductInfo.StockDecrease decrease(Long productId, int quantitiy) {
-        RLock lock = redissonClient.getLock(productId.toString());
+        RLock lock = redissonClient.getLock("stock:lock:" + productId);
 
         try {
-            boolean available = lock.tryLock(5, TimeUnit.SECONDS);
+            boolean available = lock.tryLock(5, 5, TimeUnit.SECONDS);
 
             if (!available) {
                 throw new IllegalStateException("Lock을 획득하지 못했습니다.");

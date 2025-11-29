@@ -11,6 +11,7 @@ import me.seyoung.ecomerce.domain.point.Point;
 import me.seyoung.ecomerce.domain.point.PointRepository;
 import me.seyoung.ecomerce.domain.product.Product;
 import me.seyoung.ecomerce.domain.product.ProductRepository;
+import me.seyoung.ecomerce.facade.RedissonLockStockFacade;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -24,65 +25,81 @@ public class CreatePaymentUseCase {
     private final ProductRepository productRepository;
     private final ApplyCouponUseCase applyCouponUseCase;
     private final PointRepository pointRepository;
+    private final RedisLockService redisLockService;
 
+    private final RedissonLockStockFacade redissonLockStockFacade;
     /**
      * 결제 생성 (쿠폰 사용, 포인트 차감, 재고 차감 실제 수행)
      * 주문 생성 시 재고 확인과 상품 총액 계산이 완료된 상태
      * 결제 시점에 쿠폰 할인과 포인트 차감을 적용하여 최종 금액 계산
      */
     public PaymentInfo.Result execute(Pay command) {
-        // 1. 주문 조회
-        Order order = orderRepository.findById(command.orderId())
-                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 주문입니다. orderId=" + command.orderId()));
+        String lockKey = "order:payment:lock:" + command.orderId();
 
-        // 주문에서 상품 총액 가져오기
-        long totalAmount = order.getTotalPrice();
-        long discountAmount = 0;
-
-        // 유저 내부에서 적용 - 낙관적락 사용
-        // 2. 쿠폰 사용 처리 및 할인 적용 (ApplyCouponUseCase 사용)
-        if (command.userCouponId() != null) {
-            CouponInfo.CouponUseResult couponResult = applyCouponUseCase.execute(command.userId(), command.userCouponId());
-            discountAmount += couponResult.getDiscountAmount();
+        // 0) 중복 결제 방지 락
+        boolean locked = redisLockService.acquireLock(lockKey, 5);
+        if (!locked) {
+            throw new IllegalStateException("이미 결제가 진행 중이거나 처리 완료된 주문입니다.");
         }
 
-        // 3. 포인트 차감 처리 및 할인 적용
-        // 낙관적락 - 동시에 2번 결제하면 한번만 성공, 개인자원
-        long pointToUse = command.pointToUse() != null ? command.pointToUse() : 0L;
-        if (pointToUse > 0) {
-            Point point = pointRepository.findByUserId(command.userId())
-                    .orElseThrow(() -> new IllegalArgumentException("사용자의 포인트가 존재하지 않습니다."));
+        try {
+            // 1. 주문 조회
+            Order order = orderRepository.findById(command.orderId())
+                    .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 주문입니다. orderId=" + command.orderId()));
 
-            // 포인트 잔액 확인 및 차감
-            point.use(pointToUse);
-            pointRepository.save(point);
+            // 주문에서 상품 총액 가져오기
+            long totalAmount = order.getTotalPrice();
+            long discountAmount = 0;
 
-            // 포인트 할인 적용
-            discountAmount += pointToUse;
+            // 유저 내부에서 적용 - 낙관적락 사용
+            // 2. 쿠폰 사용 처리 및 할인 적용 (ApplyCouponUseCase 사용)
+            if (command.userCouponId() != null) {
+                CouponInfo.CouponUseResult couponResult = applyCouponUseCase.execute(command.userId(), command.userCouponId());
+                discountAmount += couponResult.getDiscountAmount();
+            }
+
+            // 3. 포인트 차감 처리 및 할인 적용
+            // 낙관적락 - 동시에 2번 결제하면 한번만 성공, 개인자원
+            long pointToUse = command.pointToUse() != null ? command.pointToUse() : 0L;
+            if (pointToUse > 0) {
+                Point point = pointRepository.findByUserId(command.userId())
+                        .orElseThrow(() -> new IllegalArgumentException("사용자의 포인트가 존재하지 않습니다."));
+
+                // 포인트 잔액 확인 및 차감
+                point.use(pointToUse);
+                pointRepository.save(point);
+
+                // 포인트 할인 적용
+                discountAmount += pointToUse;
+            }
+
+            // 4. 재고 실제 차감
+            for (OrderItem item : order.getItems()) {
+                // 1. 비관적 락으로 상품 조회 (overselling 방지)
+//                Product product = productRepository.findById(item.getProductId())
+//                        .orElseThrow(() -> new IllegalArgumentException("상품이 존재하지 않습니다. productId=" + item.getProductId()));
+
+                // 2. 도메인 로직 실행 (정합성 규칙)
+                //product.decreaseStock(item.getQuantity());
+
+                redissonLockStockFacade.decrease(item.getProductId(),item.getQuantity());
+
+                // 3. 영속화
+                //productRepository.save(product);
+            }
+
+            // 5. 최종 결제 금액 계산
+            long finalAmount = Math.max(0, totalAmount - discountAmount);
+            Price finalPrice = new Price(finalAmount);
+
+            // 6. 결제 생성 및 완료 처리
+            Payment payment = Payment.create(command.orderId(), finalPrice, command.userCouponId(), pointToUse);
+            payment.complete();
+            paymentRepository.save(payment);
+
+            return PaymentInfo.Result.from(payment);
+        } finally {
+            redisLockService.releaseLock(lockKey);
         }
-
-        // 4. 재고 실제 차감
-        for (OrderItem item : order.getItems()) {
-            // 1. 비관적 락으로 상품 조회 (overselling 방지)
-            Product product = productRepository.findByIdForUpdate(item.getProductId())
-                    .orElseThrow(() -> new IllegalArgumentException("상품이 존재하지 않습니다. productId=" + item.getProductId()));
-
-            // 2. 도메인 로직 실행 (정합성 규칙)
-            product.decreaseStock(item.getQuantity());
-
-            // 3. 영속화
-            productRepository.save(product);
-        }
-
-        // 5. 최종 결제 금액 계산
-        long finalAmount = Math.max(0, totalAmount - discountAmount);
-        Price finalPrice = new Price(finalAmount);
-
-        // 6. 결제 생성 및 완료 처리
-        Payment payment = Payment.create(command.orderId(), finalPrice, command.userCouponId(), pointToUse);
-        payment.complete();
-        paymentRepository.save(payment);
-
-        return PaymentInfo.Result.from(payment);
     }
 }
