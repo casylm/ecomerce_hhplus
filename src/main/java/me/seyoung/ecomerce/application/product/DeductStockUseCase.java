@@ -20,7 +20,7 @@ public class DeductStockUseCase {
         //Product product = productRepository.findByIdForUpdate(productId)
         //        .orElseThrow(() -> new IllegalArgumentException("상품이 존재하지 않습니다. productId=" + productId));
 
-        // 1. 레디슨 사용
+        // 1. 레디스 사용
         Product product = productRepository.findById(productId)
                 .orElseThrow(() -> new IllegalArgumentException("상품이 존재하지 않습니다. productId=" + productId));
 
