@@ -3,6 +3,7 @@ package me.seyoung.ecomerce.application.payment;
 import lombok.RequiredArgsConstructor;
 import me.seyoung.ecomerce.application.coupon.ApplyCouponUseCase;
 import me.seyoung.ecomerce.application.coupon.CouponInfo;
+import me.seyoung.ecomerce.application.rank.IncreaseProductSalesUseCase;
 import me.seyoung.ecomerce.domain.order.Order;
 import me.seyoung.ecomerce.domain.order.OrderItem;
 import me.seyoung.ecomerce.domain.order.OrderRepository;
@@ -28,6 +29,9 @@ public class CreatePaymentUseCase {
     private final RedisLockService redisLockService;
 
     private final RedissonLockStockFacade redissonLockStockFacade;
+
+    private final IncreaseProductSalesUseCase increaseProductSalesUseCase;
+
     /**
      * 결제 생성 (쿠폰 사용, 포인트 차감, 재고 차감 실제 수행)
      * 주문 생성 시 재고 확인과 상품 총액 계산이 완료된 상태
@@ -96,6 +100,11 @@ public class CreatePaymentUseCase {
             Payment payment = Payment.create(command.orderId(), finalPrice, command.userCouponId(), pointToUse);
             payment.complete();
             paymentRepository.save(payment);
+
+            // 7. 상품 판매량 증가(랭킹)
+            for (OrderItem item : order.getItems()) {
+                increaseProductSalesUseCase.execute(item.getProductId(), item.getQuantity());
+            }
 
             return PaymentInfo.Result.from(payment);
         } finally {

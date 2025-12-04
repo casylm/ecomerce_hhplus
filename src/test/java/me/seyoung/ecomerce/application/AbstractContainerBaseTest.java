@@ -26,8 +26,9 @@ public abstract class AbstractContainerBaseTest {
             .withReuse(true); // 컨테이너 재사용으로 성능 향상
 
     @Container
-    static GenericContainer<?> redis = new GenericContainer<>("redis:7-alpine")
+    static GenericContainer<?> redis = new GenericContainer<>("redis:7.2-alpine")
             .withExposedPorts(6379)
+            .withCommand("redis-server", "--appendonly", "yes")
             .withReuse(true);
 
     @DynamicPropertySource
