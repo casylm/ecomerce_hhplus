@@ -2,6 +2,7 @@ package me.seyoung.ecomerce.presentation.coupon;
 
 import lombok.RequiredArgsConstructor;
 import me.seyoung.ecomerce.application.coupon.*;
+import me.seyoung.ecomerce.facade.FastIssueCouponFacade;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -14,6 +15,7 @@ public class CouponController {
     private final GetCouponListUseCase getCouponListUseCase;
     private final IssueCouponUseCase issueCouponUseCase;
     private final ApplyCouponUseCase useCouponUseCase;
+    private final FastIssueCouponFacade fastIssueCouponFacade;
 
     @GetMapping("/users/{userId}")
     public ResponseEntity<CouponInfo.Coupons> getUserCoupons(@PathVariable Long userId) {
@@ -31,6 +33,14 @@ public class CouponController {
     public ResponseEntity<CouponInfo.CouponUseResult> useCoupon(@RequestBody UseCouponRequest request) {
         CouponInfo.CouponUseResult response = useCouponUseCase.execute(request.userId(), request.userCouponId());
         return ResponseEntity.ok(response);
+    }
+
+    @PostMapping("/coupons/{couponId}/issue")
+    public CouponInfo.CouponIssueResult issue(
+            @PathVariable Long couponId,
+            @RequestParam Long userId
+    ) {
+        return fastIssueCouponFacade.issue(userId, couponId);
     }
 
     public record IssueCouponRequest(Long userId, Long couponId) {}
