@@ -3,6 +3,7 @@ package me.seyoung.ecomerce.application.payment;
 import lombok.RequiredArgsConstructor;
 import me.seyoung.ecomerce.application.coupon.ApplyCouponUseCase;
 import me.seyoung.ecomerce.application.coupon.CouponInfo;
+import me.seyoung.ecomerce.application.payment.event.PaymentCompletedEvent;
 import me.seyoung.ecomerce.application.rank.IncreaseProductSalesUseCase;
 import me.seyoung.ecomerce.domain.order.Order;
 import me.seyoung.ecomerce.domain.order.OrderItem;
@@ -13,6 +14,7 @@ import me.seyoung.ecomerce.domain.point.PointRepository;
 import me.seyoung.ecomerce.domain.product.Product;
 import me.seyoung.ecomerce.domain.product.ProductRepository;
 import me.seyoung.ecomerce.facade.RedissonLockStockFacade;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -31,6 +33,8 @@ public class CreatePaymentUseCase {
     private final RedissonLockStockFacade redissonLockStockFacade;
 
     private final IncreaseProductSalesUseCase increaseProductSalesUseCase;
+
+    private final ApplicationEventPublisher eventPublisher;
 
     /**
      * 결제 생성 (쿠폰 사용, 포인트 차감, 재고 차감 실제 수행)
@@ -106,7 +110,18 @@ public class CreatePaymentUseCase {
                 increaseProductSalesUseCase.execute(item.getProductId(), item.getQuantity());
             }
 
-            return PaymentInfo.Result.from(payment);
+            // 8. 결제 완료 이벤트 발행 (트랜잭션 커밋 후 외부 API 전송)
+            PaymentInfo.Result result = PaymentInfo.Result.from(payment);
+            PaymentCompletedEvent event = new PaymentCompletedEvent(
+                result.paymentId(),
+                result.orderId(),
+                result.amount(),
+                result.status().name(),
+                result.paidAt()
+            );
+            eventPublisher.publishEvent(event);
+
+            return result;
         } finally {
             redisLockService.releaseLock(lockKey);
         }
